@@ -28,12 +28,13 @@ async def check_new_element(model):
         page = await browser.new_page()
         await page.goto("https://chatoverlay.colinhorn.co.uk/?twitch=baba_hier&kick=baba-hier&badges=true&monochrome=false")
 
-        with open("config", "r") as f:
-            followers = dict(line.strip().split(",") for line in f if line.strip())
+        config_file = open("config", "r")
 
         last_count = 0
 
         while True:
+            config_file.seek(0)
+            followers = dict(line.strip().split(",") for line in config_file if line.strip())
             html = await page.content()
             soup = BeautifulSoup(html, 'html.parser')
             chat_items = soup.find_all('div', class_='m-chatitem')
@@ -48,7 +49,7 @@ async def check_new_element(model):
 
                 last_count = len(chat_items)
 
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(1)
 
         await browser.close()
 
