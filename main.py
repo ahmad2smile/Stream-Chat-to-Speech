@@ -9,11 +9,12 @@ import scipy.io.wavfile as wavfile
 from playwright.async_api import async_playwright
 import asyncio
 from bs4 import BeautifulSoup
+import random
 
-async def send_message(text, model):  # Placeholder - implement your own
+async def send_message(text, audio_prompt_path, model):  # Placeholder - implement your own
     try:
         print(f"Playing: {text}")
-        waveform = model.generate(text, audio_prompt_path="prompt_audio.wav")
+        waveform = model.generate(text, audio_prompt_path=audio_prompt_path)
         waveform = waveform.squeeze()
         sample_rate = getattr(model, 'sr', 24000)
         sd.play(waveform.cpu().numpy(), sample_rate)
@@ -28,9 +29,7 @@ async def check_new_element(model):
         await page.goto("https://chatoverlay.colinhorn.co.uk/?twitch=baba_hier&kick=baba-hier&badges=true&monochrome=false")
 
         with open("config", "r") as f:
-            followers = [line.strip() for line in f if line.strip()]
-        print("Following Followers are enabled:")
-        print(followers)
+            followers = dict(line.strip().split(",") for line in f if line.strip())
 
         last_count = 0
 
@@ -45,11 +44,11 @@ async def check_new_element(model):
                 message = new_item.find('div', class_='e-message').get_text(strip=True)
 
                 if username in followers:
-                    await send_message(message, model)
+                    await send_message(message, followers[username], model)
 
                 last_count = len(chat_items)
 
-            await asyncio.sleep(1)
+            await asyncio.sleep(0.5)
 
         await browser.close()
 
